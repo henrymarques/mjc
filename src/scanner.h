@@ -21,8 +21,6 @@ private:
     SymbolTable* st;
     Token token;
 
-    void getId(stringstream&);
-
 public:
     Scanner(SymbolTable*);
     Token* scan();

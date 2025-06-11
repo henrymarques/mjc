@@ -5,6 +5,25 @@
 using std::cout;
 std::ifstream fin;
 
+void
+scannerTest()
+{
+    auto globalST = new SymbolTable();
+    auto scanner = new Scanner(globalST);
+
+    Token *token;
+    do
+    {
+        token = scanner->scan();
+#ifdef _DEBUG
+        std::cout << token->lexeme << ' ';
+#endif
+    } while (token->type != Types::END_OF_FILE);
+
+    delete globalST;
+    delete scanner;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -23,6 +42,8 @@ main(int argc, char *argv[])
         cout << "Não foi possível abrir o arquivo\n";
         return 1;
     }
+
+    scannerTest();
 
     /*
     try

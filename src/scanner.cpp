@@ -10,16 +10,6 @@ Scanner::Scanner(SymbolTable* st) : st(st)
     peek = fin.get();
 }
 
-void
-Scanner::getId(stringstream& lexeme)
-{
-    do
-    {
-        lexeme << peek;
-        peek = fin.get();
-    } while (isalnum(peek) || peek == '_');
-}
-
 Token*
 Scanner::scan()
 {
@@ -59,12 +49,20 @@ Scanner::scan()
 
         if (lexeme.str() == "System" && peek == '.')
         {
-            if (false /*verify if ends with out.println*/)
+            do
             {
+                lexeme << peek;
+                peek = fin.get();
+            } while (isalpha(peek) || peek == '.');
+
+            if (lexeme.str() == "System.out.println")
+            {
+                token = Token(PRINTLN, lexeme.str());
+                return &token;
             }
             else
             {
-                throw LexicalError("");
+                throw LexicalError("System.out.println expected.");
             }
         }
 
