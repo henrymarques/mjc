@@ -100,7 +100,7 @@ Scanner::scan()
 
         if (peek == '*')
         {
-            bool flag = false, inComment = true;
+            bool flag = true;
             do
             {
                 if (peek == '\n') line++;
@@ -113,9 +113,12 @@ Scanner::scan()
                 }
 
                 peek = fin.get();
-                flag = peek == '*';
-                if (flag && peek == '/') inComment = false;
-            } while (inComment);
+                if (peek == '*')
+                {
+                    peek = fin.get();
+                    if (peek == '/') flag = false;
+                }
+            } while (flag);
 
             peek = fin.get();
             token = Token(COMMENT);
