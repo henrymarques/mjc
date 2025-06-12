@@ -33,6 +33,7 @@ enum Types
     TRUE,
     VOID,
     WHILE,
+    COMMENT,
     END_OF_FILE
 };
 

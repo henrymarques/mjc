@@ -89,10 +89,37 @@ Scanner::scan()
 
         if (peek == '/')
         {
-            while (peek != '\n')
+            while (peek != '\n' && !fin.eof())
             {
                 peek = fin.get();
             }
+
+            token = Token(COMMENT);
+            return &token;
+        }
+
+        if (peek == '*')
+        {
+            bool flag = false, inComment = true;
+            do
+            {
+                if (peek == '\n') line++;
+
+                if (fin.eof())
+                {
+                    stringstream erro;
+                    erro << "Final de bloco de comentário esperado na linha " << this->line;
+                    throw LexicalError(erro.str());
+                }
+
+                peek = fin.get();
+                if (peek == '*') flag = true;
+                if (flag && peek == '/') inComment = false;
+            } while (inComment);
+
+            peek = fin.get();
+            token = Token(COMMENT);
+            return &token;
         }
 
         token = Token(OP, lexeme.str());
