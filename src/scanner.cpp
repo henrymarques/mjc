@@ -113,7 +113,7 @@ Scanner::scan()
                 }
 
                 peek = fin.get();
-                if (peek == '*') flag = true;
+                flag = peek == '*';
                 if (flag && peek == '/') inComment = false;
             } while (inComment);
 
