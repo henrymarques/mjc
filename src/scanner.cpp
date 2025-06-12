@@ -62,7 +62,9 @@ Scanner::scan()
             }
             else
             {
-                throw LexicalError("System.out.println esperado.");
+                stringstream erro;
+                erro << "System.out.println esperado na linha " << this->line;
+                throw LexicalError(erro.str());
             }
         }
 
@@ -158,7 +160,7 @@ Scanner::scan()
     else
     {
         stringstream erro;
-        erro << "Símbolo não reconhecido " << peek << " na linha " << this->line;
+        erro << "Símbolo '" << peek << "' não reconhecido " << " na linha " << this->line;
         throw LexicalError(erro.str());
     }
 
