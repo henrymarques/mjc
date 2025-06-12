@@ -14,7 +14,14 @@ scannerTest()
     Token *token;
     do
     {
-        token = scanner->scan();
+        try
+        {
+            token = scanner->scan();
+        }
+        catch(Error err) {
+            err.what();
+            return;
+        }
 #ifdef _DEBUG
         std::cout << token->lexeme << ' ';
 #endif
@@ -44,7 +51,7 @@ main(int argc, char *argv[])
     }
 
     scannerTest();
-
+    
     /*
     try
     {

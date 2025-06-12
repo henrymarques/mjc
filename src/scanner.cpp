@@ -23,7 +23,7 @@ Scanner::scan()
         peek = fin.get();
     }
 
-    if (peek == '\0')
+    if (fin.eof())
     {
         token = Token(END_OF_FILE);
         return &token;
@@ -32,8 +32,8 @@ Scanner::scan()
     {
         do
         {
-            peek = fin.get();
             lexeme << peek;
+            peek = fin.get();
         } while (isdigit(peek));
 
         token = Token(INTEGER_LITERAL, lexeme.str());
@@ -62,7 +62,7 @@ Scanner::scan()
             }
             else
             {
-                throw LexicalError("System.out.println expected.");
+                throw LexicalError("System.out.println esperado.");
             }
         }
 
@@ -72,9 +72,27 @@ Scanner::scan()
         token = !obj ? Token(ID, str) : Token(obj->token.type);
         return &token;
     }
-    else if (peek == '<' || peek == '>' || peek == '+' || peek == '-' || peek == '*' || peek == '/' || peek == '=')
+    else if (peek == '<' || peek == '>' || peek == '+' || peek == '-' || peek == '*')
     {
         lexeme << peek;
+        peek = fin.get();
+
+        token = Token(OP, lexeme.str());
+        return &token;
+    }
+    else if (peek == '/')
+    {
+        lexeme << peek;
+        peek = fin.get();
+
+        if (peek == '/')
+        {
+            while (peek != '\n')
+            {
+                peek = fin.get();
+            }
+        }
+
         token = Token(OP, lexeme.str());
         return &token;
     }
@@ -82,7 +100,12 @@ Scanner::scan()
     {
         lexeme << peek;
         peek = fin.get();
-        if (peek == '=') lexeme << peek;
+
+        if (peek == '=')
+        {
+            lexeme << peek;
+            peek = fin.get();
+        }
 
         token = Token(OP, lexeme.str());
         return &token;
@@ -95,26 +118,48 @@ Scanner::scan()
         if (peek == '&')
         {
             lexeme << peek;
+            peek = fin.get();
+
             token = Token(OP, lexeme.str());
             return &token;
         }
         else
         {
-            throw LexicalError(string{"teste"});
+            stringstream erro;
+            erro << "& esperado na linha " << this->line;
+            throw LexicalError(erro.str());
         }
     }
     else if (peek == '=')
     {
         lexeme << peek;
         peek = fin.get();
-        if (peek == '=') lexeme << peek;
+
+        if (peek == '=') 
+        {
+            lexeme << peek;
+            peek = fin.get();
+        }
 
         token = Token(OP, lexeme.str());
         return &token;
     }
+    else if (peek == '(' || peek == ')'
+        || peek == '[' || peek == ']'
+        || peek == '{' || peek == '}'
+        || peek == ';' || peek == ',' || peek == '.')
+    {
+        lexeme << peek;
+        peek = fin.get();
+
+        token = Token(SEP, lexeme.str());
+        return &token;
+    }
     else
     {
-        throw LexicalError("");
+        stringstream erro;
+        erro << "Símbolo não reconhecido " << peek << " na linha " << this->line;
+        throw LexicalError(erro.str());
     }
 
     // simbolo invalido

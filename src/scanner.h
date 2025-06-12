@@ -25,7 +25,7 @@ public:
     Scanner(SymbolTable*);
     Token* scan();
 
-    int getLine() const { return line; }
+    // int getLine() const { return line; }
 };
 
 #endif

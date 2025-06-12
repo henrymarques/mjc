@@ -17,18 +17,18 @@ public:
     }
 };
 
-class LexicalError : Error
+class LexicalError : public Error
 {
 public:
     LexicalError(std::string msg) : Error(msg) {}
 
     void what() const
     {
-        std::cout << "Caractere não esperado: " << msg << std::endl;
+        std::cout << msg << std::endl;
     }
 };
 
-class SyntaxError : Error
+class SyntaxError : public Error
 {
 public:
     SyntaxError(std::string msg) : Error(msg) {}
