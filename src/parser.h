@@ -10,49 +10,66 @@ private:
     Scanner* scanner;
     Token* lToken;
     SymbolTable* globalST;
-
     void advance();
-    bool match(int);
-    void matchOrError(int);
-
-    void program();
-    void classList();
-    void classDecl();
+    void match(int);
+    void matchOrError(int type);
 
 public:
     Parser();
     ~Parser();
     void run();
+    bool nextIs(int t);
+    bool nextIs(const string& lexeme);
+    void program();
+    void mainClass();
+    void classDeclaration();
+    void varDeclaration();
+    void methodDeclaration();
+    void params();
+    void type();
+    void statement();
+    void expression();
+    void expressionLinha();
+    bool op();
+    void expressionsList();
 };
 
 inline void
 Parser::advance()
 {
-    lToken = scanner->scan();
+    do {
+        lToken = scanner->scan();
+    } while (lToken->type == COMMENT);
 }
 
-inline bool
+inline void
 Parser::match(int type)
 {
     if (lToken->type == type)
     {
         advance();
-        return true;
+        //return true;
+    }
+    else {
+        stringstream err;
+        err << "o que eh? '" << lToken->lexeme << "' na linha " << scanner->getLine();
+        throw SyntaxError(err.str());
     }
 
-    return false;
+    //return false;
 }
 
+/*
 inline void
 Parser::matchOrError(int type)
 {
     if (!match(type))
     {
         std::stringstream ss;
-        ss << "";
+        ss << "o que eh? '" << lToken->lexeme << "' na linha " << scanner->getLine();
 
         throw SyntaxError(ss.str());
     }
-}
+}*/
 
-#endif
+#endif 
