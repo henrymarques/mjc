@@ -245,15 +245,17 @@ void Parser::expressionLinha()
         }
         else {
             match(ID);
-            match(SEP); 
-            if (!nextIs(")")) {
-                expression();
-                while (nextIs(",")) {
-                    match(SEP); 
+            if (nextIs("(")) {
+                match(SEP);    
+                if (!nextIs(")")) {
                     expression();
+                    while (nextIs(",")) {
+                        match(SEP);
+                        expression();
+                    }
                 }
+                match(SEP); 
             }
-            match(SEP); 
         }
         expressionLinha();
     }
