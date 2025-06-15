@@ -2,8 +2,30 @@
 #include "error.h"
 
 #include <fstream>
+#include <unordered_map>
 
 extern std::ifstream fin;
+
+std::unordered_map<string, Token> tokens{
+    /*{"<", Token(LT, "<")},
+    { ">", Token(GT, ">")},
+    { "+", Token(PLUS, "+")},
+    { "-", Token(MINUS, "-")},
+    { "*", Token(MULT, "*")},
+    { "/", Token(DIV, "/")},
+    { "==", Token(EQ, "==")},
+    { "!=", Token(NEQ, "!=")},
+    { "=", Token(ATTRIB, "=")},*/
+    { "(", Token(LPAREN, "(")},
+    { ")", Token(RPAREN, ")")},
+    { "[", Token(LBRACE, "[")},
+    { "]", Token(RBRACE, "]")},
+    { "{", Token(LCBRAC, "{")},
+    { "}", Token(RCBRAC, "}")},
+    { ";", Token(SEMI, ";")},
+    { ",", Token(COMMA, ",")},
+    { ".", Token(DOT, ".")}
+};
 
 Scanner::Scanner(SymbolTable* st) : st(st)
 {
@@ -167,7 +189,7 @@ Scanner::scan()
         lexeme << peek;
         peek = fin.get();
 
-        if (peek == '=') 
+        if (peek == '=')
         {
             lexeme << peek;
             peek = fin.get();
@@ -184,7 +206,7 @@ Scanner::scan()
         lexeme << peek;
         peek = fin.get();
 
-        token = Token(SEP, lexeme.str());
+        token = tokens[lexeme.str()];
         return &token;
     }
     else

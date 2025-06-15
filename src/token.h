@@ -12,8 +12,28 @@ enum Types
     UNDEF,
     ID,
     INTEGER_LITERAL,
+    /*
+    LT,
+    GT,
+    PLUS,
+    MINUS,
+    MULT,
+    DIV,
+    EQ,
+    NEQ,
+    AND,
+    */
     OP,
-    SEP,
+    ATTRIB,
+    LPAREN,
+    RPAREN,
+    LBRACE,
+    RBRACE,
+    LCBRAC,
+    RCBRAC,
+    SEMI,
+    COMMA,
+    DOT,
     BOOLEAN,
     CLASS,
     ELSE,
@@ -37,40 +57,32 @@ enum Types
     END_OF_FILE
 };
 
-class Token
-{
-public:
-    int    type;
-    string lexeme;
-
-    Token()
-    {
-        this->type = UNDEF;
-    }
-
-    Token(int type)
-    {
-        this->type = type;
-    }
-
-    Token(int type, string l)
-    {
-        this->type = type;
-        lexeme     = l;
-    }
-
-    // std::ostream& operator<<(std::ostream&, const Token&);
-};
-
-inline std::ostream&
-operator<<(std::ostream& os, const Token& token)
-{
-    static std::unordered_map<int, std::string> tokenTypeMap = {
+static std::unordered_map<int, std::string> tokenTypeMap{
         { UNDEF, "UNDEF" },
         { ID, "ID" },
         { INTEGER_LITERAL, "INTEGER_LITERAL" },
+        /*
+        { LT, "OPERATOR" },
+        { GT, "OPERATOR" },
+        { PLUS, "OPERATOR" },
+        { MINUS, "OPERATOR" },
+        { MULT, "OPERATOR" },
+        { DIV, "OPERATOR" },
+        { EQ, "OPERATOR" },
+        { NEQ, "OPERATOR" },
+        { AND, "OPERATOR" },
+        */
         { OP, "OPERATOR" },
-        { SEP, "SEPARATOR" },
+        { ATTRIB, "=" },
+        { LPAREN, "(" },
+        { RPAREN, ")" },
+        { LBRACE, "[" },
+        { RBRACE, "]" },
+        { LCBRAC, "{" },
+        { RCBRAC, "}" },
+        { SEMI, ";" },
+        { COMMA, "," },
+        { DOT, "." },
         { BOOLEAN, "BOOLEAN" },
         { CLASS, "CLASS" },
         { ELSE, "ELSE" },
@@ -91,8 +103,34 @@ operator<<(std::ostream& os, const Token& token)
         { VOID, "VOID" },
         { WHILE, "WHILE" },
         { END_OF_FILE, "END_OF_FILE" }
-    };
+};
 
+class Token
+{
+public:
+    int    type;
+    string lexeme;
+
+    Token()
+    {
+        this->type = UNDEF;
+    }
+
+    Token(int type)
+    {
+        this->type = type;
+    }
+
+    Token(int type, string l)
+    {
+        this->type = type;
+        lexeme = l;
+    }
+};
+
+inline std::ostream&
+operator<<(std::ostream& os, const Token& token)
+{
     return os << tokenTypeMap[token.type];
 }
 

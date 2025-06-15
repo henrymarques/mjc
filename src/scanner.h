@@ -26,6 +26,7 @@ public:
     Token* scan();
 
     int getLine() const { return line; }
+    char at() const { return peek; }
 };
 
 #endif

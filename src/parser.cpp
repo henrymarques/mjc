@@ -23,7 +23,7 @@ Parser::run()
     std::cout << "Compilação encerrada com sucesso!\n";
 }
 
-bool 
+bool
 Parser::nextIs(int type)
 {
     return lToken->type == type;
@@ -37,7 +37,8 @@ bool Parser::nextIs(const string& lexeme)
 void Parser::program()
 {
     mainClass();
-    while (nextIs(CLASS)) {
+    while (nextIs(CLASS))
+    {
         classDeclaration();
     }
     match(END_OF_FILE);
@@ -47,48 +48,53 @@ void Parser::mainClass()
 {
     match(CLASS);
     match(ID);
-    match(SEP);
+    match(LCBRAC);
     match(PUBLIC);
     match(STATIC);
     match(VOID);
     match(MAIN);
-    match(SEP); 
+    match(LPAREN);
     match(STRING);
-    match(SEP); 
-    match(SEP); 
+    match(LBRACE);
+    match(RBRACE);
     match(ID);
-    match(SEP); 
-    match(SEP); 
+    match(RPAREN);
+    match(LCBRAC);
     statement();
-    match(SEP); 
-    match(SEP); 
+    match(RCBRAC);
+    match(RCBRAC);
 }
 
 void Parser::classDeclaration()
 {
     match(CLASS);
     match(ID);
-    if (nextIs(EXTENDS)) {
+    if (nextIs(EXTENDS))
+    {
         match(EXTENDS);
         match(ID);
     }
-    match(SEP);
-    while (!nextIs("}")) {
-        if (nextIs(PUBLIC)) {
+    match(LCBRAC);
+    while (!nextIs(RCBRAC))
+    {
+        //while (!nextIs("}")) {
+        if (nextIs(PUBLIC))
+        {
             methodDeclaration();
         }
-        else {
+        else
+        {
             varDeclaration();
         }
     }
-    match(SEP);
+    match(RCBRAC);
 }
 
 void Parser::varDeclaration()
 {
     type();
     match(ID);
-    match(SEP);
+    match(SEMI);
 }
 
 void Parser::methodDeclaration()
@@ -96,165 +102,204 @@ void Parser::methodDeclaration()
     match(PUBLIC);
     type();
     match(ID);
-    match(SEP); 
-    if (nextIs(INT) || nextIs(BOOLEAN) || nextIs(ID)) {
+    match(LPAREN);
+    if (nextIs(INT) || nextIs(BOOLEAN) || nextIs(ID))
+    {
         type();
         match(ID);
-        while (nextIs(",")) {
-            match(SEP); 
+        while (nextIs(COMMA))
+        {
+            match(COMMA);
             type();
             match(ID);
         }
     }
-    match(SEP); 
-    match(SEP); 
+    match(RPAREN);
+    match(LCBRAC);
     while (nextIs(INT) || nextIs(BOOLEAN) ||
-        (nextIs(ID) && lToken->lexeme != "return")) {
+        (nextIs(ID) && lToken->lexeme != "return"))
+    {
         varDeclaration();
     }
-    while (!nextIs(RETURN)) {
+    while (!nextIs(RETURN))
+    {
         statement();
     }
     match(RETURN);
     expression();
-    match(SEP); 
-    match(SEP); 
+    match(SEMI);
+    match(RCBRAC);
 }
 
 void Parser::type()
 {
-    if (nextIs(INT)) {
+    if (nextIs(INT))
+    {
         match(INT);
-        if (nextIs("[")) {
-            match(SEP); 
-            match(SEP); 
+        if (nextIs(LBRACE))
+        {
+            match(LBRACE);
+            match(RBRACE);
         }
     }
-    else if (nextIs(BOOLEAN)) {
+    else if (nextIs(BOOLEAN))
+    {
         match(BOOLEAN);
     }
-    else {
+    else
+    {
         match(ID);
     }
 }
 
 void Parser::statement()
 {
-    if (nextIs("{")) {
-        match(SEP); 
-        while (!nextIs("}")) {
+    if (nextIs(LCBRAC))
+    {
+        match(LCBRAC);
+        while (!nextIs(RCBRAC))
+        {
             statement();
         }
-        match(SEP); 
+        match(RCBRAC);
     }
-    else if (nextIs(IF)) {
+    else if (nextIs(IF))
+    {
         match(IF);
-        match(SEP); 
+        match(LPAREN);
         expression();
-        match(SEP); 
+        match(RPAREN);
         statement();
         match(ELSE);
         statement();
     }
-    else if (nextIs(WHILE)) {
+    else if (nextIs(WHILE))
+    {
         match(WHILE);
-        match(SEP); 
+        match(LPAREN);
         expression();
-        match(SEP); 
+        match(RPAREN);
         statement();
     }
-    else if (nextIs(PRINTLN)) {
+    else if (nextIs(PRINTLN))
+    {
         match(PRINTLN);
-        match(SEP); 
+        match(LPAREN);
         expression();
-        match(SEP); 
-        match(SEP); 
+        match(RPAREN);
+        match(SEMI);
     }
-    else {
+    else
+    {
         match(ID);
-        if (nextIs("[")) {
-            match(SEP); 
+        if (nextIs(LBRACE))
+        {
+            match(LBRACE);
             expression();
-            match(SEP); 
+            match(RBRACE);
         }
-        match(OP); 
+        if (!nextIs("="))
+        {
+            stringstream erro;
+            erro << "Esperado = na linha " << scanner->getLine() << " obtido " << *lToken;
+            throw SyntaxError(erro.str());
+        }
+        match(OP); // match attrib
         expression();
-        match(SEP); 
+        match(SEMI);
     }
 }
 
 void Parser::expression()
 {
-    if (nextIs(INTEGER_LITERAL)) {
+    if (nextIs(INTEGER_LITERAL))
+    {
         match(INTEGER_LITERAL);
     }
-    else if (nextIs(TRUE)) {
+    else if (nextIs(TRUE))
+    {
         match(TRUE);
     }
-    else if (nextIs(FALSE)) {
+    else if (nextIs(FALSE))
+    {
         match(FALSE);
     }
-    else if (nextIs(ID)) {
+    else if (nextIs(ID))
+    {
         match(ID);
     }
-    else if (nextIs(THIS)) {
+    else if (nextIs(THIS))
+    {
         match(THIS);
     }
-    else if (nextIs(NEW)) {
+    else if (nextIs(NEW))
+    {
         match(NEW);
-        if (nextIs(INT)) {
+        if (nextIs(INT))
+        {
             match(INT);
-            match(SEP); 
+            match(LBRACE);
             expression();
-            match(SEP); 
+            match(RBRACE);
         }
-        else {
+        else
+        {
             match(ID);
-            match(SEP); 
-            match(SEP); 
+            match(LPAREN);
+            match(RPAREN);
         }
     }
-    else if (nextIs("!")) {
-        match(OP); 
+    else if (nextIs("!"))
+    {
+        match(OP);
         expression();
     }
-    else if (nextIs("(")) {
-        match(SEP); 
+    else if (nextIs(LPAREN))
+    {
+        match(LPAREN);
         expression();
-        match(SEP); 
+        match(RPAREN);
     }
     expressionLinha();
 }
 
 void Parser::expressionLinha()
 {
-    if (nextIs(OP) && lToken->lexeme != "=") {
+    if (nextIs(OP) && lToken->lexeme != "=")
+    {
         match(OP);
         expression();
     }
-    else if (nextIs("[")) {
-        match(SEP); 
+    else if (nextIs(LBRACE))
+    {
+        match(LBRACE);
         expression();
-        match(SEP); 
+        match(RBRACE);
         expressionLinha();
     }
-    else if (nextIs(".")) {
-        match(SEP); 
-        if (nextIs(LENGTH)) {
+    else if (nextIs(DOT))
+    {
+        match(DOT);
+        if (nextIs(LENGTH))
+        {
             match(LENGTH);
         }
-        else {
+        else
+        {
             match(ID);
-            if (nextIs("(")) {
-                match(SEP);    
-                if (!nextIs(")")) {
+            if (nextIs(LPAREN))
+            {
+                match(LPAREN);
+                if (!nextIs(RPAREN))
+                {
                     expression();
-                    while (nextIs(",")) {
-                        match(SEP);
+                    while (nextIs(COMMA))
+                    {
+                        match(COMMA);
                         expression();
                     }
                 }
-                match(SEP); 
+                match(RPAREN);
             }
         }
         expressionLinha();

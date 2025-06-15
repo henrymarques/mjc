@@ -4,6 +4,8 @@
 #include "scanner.h"
 #include "error.h"
 
+extern std::unordered_map<int, std::string> tokenTypeMap;
+
 class Parser
 {
 private:
@@ -12,26 +14,22 @@ private:
     SymbolTable* globalST;
     void advance();
     void match(int);
-    void matchOrError(int type);
 
 public:
     Parser();
     ~Parser();
     void run();
-    bool nextIs(int t);
-    bool nextIs(const string& lexeme);
+    bool nextIs(int);
+    bool nextIs(const string&);
     void program();
     void mainClass();
     void classDeclaration();
     void varDeclaration();
     void methodDeclaration();
-    void params();
     void type();
     void statement();
     void expression();
     void expressionLinha();
-    bool op();
-    void expressionsList();
 };
 
 inline void
@@ -52,7 +50,7 @@ Parser::match(int type)
     }
     else {
         stringstream err;
-        err << "o que eh? '" << lToken->lexeme << "' na linha " << scanner->getLine();
+        err << "Esperado '" << tokenTypeMap[type] << "' na linha " << scanner->getLine() << " obtido " << *lToken;
         throw SyntaxError(err.str());
     }
 
