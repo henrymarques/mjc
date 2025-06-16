@@ -34,6 +34,22 @@ bool Parser::nextIs(const string& lexeme)
     return lToken->lexeme == lexeme;
 }
 
+bool Parser::recTipos()
+{
+    if (nextIs(INT) || nextIs(BOOLEAN))
+        return true;
+
+    if (nextIs(ID))
+    {
+        STEntry* e = globalST->find(lToken->lexeme);
+        if (e != nullptr && e->reserved == false)
+            return true;
+        else
+            return false;
+    }
+    return false;
+}
+
 void Parser::program()
 {
     mainClass();
@@ -69,6 +85,9 @@ void Parser::classDeclaration()
 {
     match(CLASS);
     match(ID);
+
+    globalST->add(STEntry(Token(ID, lToken->lexeme)));
+
     if (nextIs(EXTENDS))
     {
         match(EXTENDS);
@@ -116,8 +135,7 @@ void Parser::methodDeclaration()
     }
     match(RPAREN);
     match(LCBRAC);
-    while (nextIs(INT) || nextIs(BOOLEAN) ||
-        (nextIs(ID) && lToken->lexeme != "return"))
+    while ( recTipos() )
     {
         varDeclaration();
     }
@@ -204,7 +222,7 @@ void Parser::statement()
             erro << "Esperado = na linha " << scanner->getLine() << " obtido " << *lToken;
             throw SyntaxError(erro.str());
         }
-        match(OP); // match attrib
+        match(OP);
         expression();
         match(SEMI);
     }
@@ -305,4 +323,3 @@ void Parser::expressionLinha()
         expressionLinha();
     }
 }
-

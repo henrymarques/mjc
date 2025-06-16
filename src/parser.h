@@ -14,6 +14,7 @@ private:
     SymbolTable* globalST;
     void advance();
     void match(int);
+    bool recTipos();
 
 public:
     Parser();
