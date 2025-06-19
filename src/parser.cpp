@@ -5,18 +5,17 @@
 Parser::~Parser()
 {
     delete scanner;
-    delete globalST;
+    delete symTable;
 }
 
 Parser::Parser()
 {
-    globalST = new SymbolTable();
-    scanner = new Scanner(globalST);
+    symTable = new SymbolTable();
+    scanner = new Scanner(symTable);
     lToken = scanner->scan();
 }
 
-void
-Parser::run()
+void Parser::run()
 {
     program();
     advance();
@@ -29,30 +28,6 @@ Parser::run()
     {
         std::cout << "Compilação encerrada erros.\n";
     }
-}
-
-inline bool
-Parser::nextIs(int type)
-{
-    return lToken->type == type;
-}
-
-bool Parser::nextIs(const string& lexeme)
-{
-    return lToken->lexeme == lexeme;
-}
-
-bool Parser::recTipos()
-{
-    if (nextIs(INT) || nextIs(BOOLEAN))
-        return true;
-
-    if (nextIs(ID))
-    {
-        STEntry* e = globalST->find(lToken->lexeme);
-        return e != nullptr && e->reserved == false;
-    }
-    return false;
 }
 
 void Parser::program()
@@ -89,14 +64,6 @@ void Parser::mainClass()
 void Parser::classDeclaration()
 {
     match(CLASS);
-    
-    /*if (globalST->find(lToken->lexeme) != nullptr)
-    {
-        stringstream erro;
-        erro << "Classe " << lToken->lexeme << " já declarada\n";
-        throw Error(erro.str());
-    }
-    globalST->add(STEntry(Token(ID, lToken->lexeme)));*/
 
     match(ID);
 
@@ -106,6 +73,10 @@ void Parser::classDeclaration()
         match(ID);
     }
     match(LCBRAC);
+
+    SymbolTable* saved = symTable;
+    symTable = new SymbolTable(symTable);
+
     while (!nextIs(RCBRAC))
     {
         if (nextIs(PUBLIC))
@@ -118,11 +89,59 @@ void Parser::classDeclaration()
         }
     }
     match(RCBRAC);
+
+    delete symTable;
+    symTable = saved;
+}
+
+int Parser::type()
+{
+    int varType;
+    if (nextIs(INT))
+    {
+        match(INT);
+        if (nextIs(LBRACE))
+        {
+            match(LBRACE);
+            match(RBRACE);
+            varType = STEntry::Types::INTARRAY;
+        }
+
+        varType = STEntry::Types::INT;
+    }
+    else if (nextIs(BOOLEAN))
+    {
+        match(BOOLEAN);
+        varType = STEntry::Types::BOOL;
+    }
+    else
+    {
+        auto symbol = symTable->find(lToken->lexeme);
+        if (symbol == nullptr)
+        {
+            varType = STEntry::Types::NONE;
+            stringstream error;
+            error << "Símbolo " << lToken->lexeme << " não definido na linha " << scanner->getLine() << '\n';
+            this->error << error.str();
+            std::cout << error.str();
+        }
+        else
+        {
+            varType = STEntry::Types::USERDEF;
+        }
+        match(ID);
+    }
+
+    return varType;
 }
 
 void Parser::varDeclaration()
 {
-    type();
+    int varType = type();
+
+    STEntry symbol{*lToken, varType};
+    symTable->add(symbol);
+
     match(ID);
     match(SEMI);
 }
@@ -130,7 +149,11 @@ void Parser::varDeclaration()
 void Parser::methodDeclaration()
 {
     match(PUBLIC);
-    type();
+    int methodType = type();
+
+    STEntry symbol{*lToken, methodType};
+    symTable->add(symbol);
+
     match(ID);
     match(LPAREN);
     if (nextIs(INT) || nextIs(BOOLEAN) || nextIs(ID))
@@ -146,6 +169,10 @@ void Parser::methodDeclaration()
     }
     match(RPAREN);
     match(LCBRAC);
+
+    SymbolTable* saved = symTable;
+    symTable = new SymbolTable(symTable);
+
     while ( recTipos() )
     {
         varDeclaration();
@@ -162,31 +189,16 @@ void Parser::methodDeclaration()
     expression();
     match(SEMI);
     match(RCBRAC);
-}
 
-void Parser::type()
-{
-    if (nextIs(INT))
-    {
-        match(INT);
-        if (nextIs(LBRACE))
-        {
-            match(LBRACE);
-            match(RBRACE);
-        }
-    }
-    else if (nextIs(BOOLEAN))
-    {
-        match(BOOLEAN);
-    }
-    else
-    {
-        match(ID);
-    }
+    delete symTable;
+    symTable = saved;
 }
 
 void Parser::statement()
 {
+    SymbolTable* saved = symTable;
+    symTable = new SymbolTable(symTable);
+    
     if (nextIs(LCBRAC))
     {
         match(LCBRAC);
@@ -224,19 +236,6 @@ void Parser::statement()
     }
     else
     {
-       /*
-        if (!nextIs(ID))
-        {
-            stringstream error;
-            error << "not allowed: " << lToken->type << ' ' << lToken->lexeme << '\n';
-            std::cout << error.str();
-            this->error << error.str();
-
-            panic();
-            return;
-        }
-       */
-
         match(ID);
         if (nextIs(LBRACE))
         {
@@ -248,6 +247,9 @@ void Parser::statement()
         expression();
         match(SEMI);
     }
+
+    delete symTable;
+    symTable = saved;
 }
 
 void Parser::expression()
@@ -289,7 +291,7 @@ void Parser::expression()
             match(RPAREN);
         }
     }
-    else if (nextIs("!"))
+    else if (nextIs(OP) && lToken->lexeme != "!")
     {
         match(OP);
         expression();

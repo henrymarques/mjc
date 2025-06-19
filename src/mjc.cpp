@@ -24,6 +24,7 @@ void fullTest()
         }
 
         fin.close();
+        break;
     }
     exit(0);
 }
@@ -31,6 +32,8 @@ void fullTest()
 int
 main(int argc, char *argv[])
 {
+    std::locale::global(std::locale(".utf8"));
+
     fullTest();
 
     // Verifica se foi executado corretamente

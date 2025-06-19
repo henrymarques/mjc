@@ -13,14 +13,14 @@ class Parser
 private:
     Scanner* scanner;
     Token* lToken;
-    SymbolTable* globalST;
+    SymbolTable* symTable;
     stringstream error;
 
     void advance();
     void match(int);
     bool recTipos();
 
-    std::vector<Types> tokens{
+    std::vector<Tag> tokens{
         RCBRAC, // }
         SEMI, // ;
         END_OF_FILE
@@ -30,19 +30,37 @@ public:
     Parser();
     ~Parser();
     void run();
-    bool nextIs(int);
-    bool nextIs(const string&);
     void program();
     void mainClass();
     void classDeclaration();
     void varDeclaration();
     void methodDeclaration();
-    void type();
+    int type();
     void statement();
     void expression();
     void expressionLinha();
     void panic();
+
+    bool nextIs(int type)
+    {
+        return lToken->type == type;
+    }
 };
+
+inline bool
+Parser::recTipos()
+{
+    if (nextIs(INT) || nextIs(BOOLEAN))
+        return true;
+
+    if (nextIs(ID))
+    {
+        STEntry* e = symTable->find(lToken->lexeme);
+        return e != nullptr && e->reserved == false && e->type == STEntry::Types::USERDEF;
+    }
+
+    return false;
+}
 
 inline void
 Parser::advance()
@@ -63,32 +81,19 @@ Parser::match(int type)
         stringstream error;
         error << "Esperado '" << tokenTypeMap[type] << "' na linha " << scanner->getLine() << " obtido " << *lToken << '\n';
         std::cout << error.str();
-
         this->error << error.str();
+
         panic();
     }
 }
 
-inline void Parser::panic()
+inline void
+Parser::panic()
 {
-    // type tá na lista
+    // type tÃ¡ na lista
     while (std::find(tokens.begin(), tokens.end(), lToken->type) == tokens.end())
     {
         advance();
     }
 }
-
-/*
-inline void
-Parser::matchOrError(int type)
-{
-    if (!match(type))
-    {
-        std::stringstream ss;
-        ss << "o que eh? '" << lToken->lexeme << "' na linha " << scanner->getLine();
-
-        throw SyntaxError(ss.str());
-    }
-}*/
-
 #endif 

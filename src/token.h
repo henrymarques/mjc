@@ -7,7 +7,7 @@
 
 using string = std::string;
 
-enum Types
+enum Tag
 {
     UNDEF,
     ID,

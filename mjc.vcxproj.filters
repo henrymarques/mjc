@@ -44,9 +44,6 @@
     <ClCompile Include="src\scanner.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
-    <ClCompile Include="src\stentry.cpp">
-      <Filter>Arquivos de Origem</Filter>
-    </ClCompile>
     <ClCompile Include="src\symboltable.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>

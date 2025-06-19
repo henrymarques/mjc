@@ -6,11 +6,21 @@
 class STEntry
 {
 public:
+    enum Types
+    {
+        NONE,
+        INT,
+        INTARRAY,
+        BOOL,
+        USERDEF
+    };
+
     Token  token;
     bool   reserved;
+    int    type;
 
-    STEntry(Token);
-    STEntry(Token, bool);
+    STEntry(Token tok, int type = NONE) : token{tok}, reserved{false}, type{type} {}
+    STEntry(Token tok, bool res) : token{tok}, reserved{res}, type{NONE} {}
 };
 
 #endif

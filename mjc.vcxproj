@@ -140,7 +140,6 @@
     <ClCompile Include="src\mjc.cpp" />
     <ClCompile Include="src\parser.cpp" />
     <ClCompile Include="src\scanner.cpp" />
-    <ClCompile Include="src\stentry.cpp" />
     <ClCompile Include="src\symboltable.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
