@@ -45,7 +45,7 @@ main(int argc, char *argv[])
     fin.open(argv[1]);
     if (!fin.is_open())
     {
-        cout << "Não foi possível abrir o arquivo\n";
+        cout << "NÃ£o foi possÃ­vel abrir o arquivo\n";
         return 1;
     }
     

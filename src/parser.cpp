@@ -20,10 +20,18 @@ Parser::run()
 {
     program();
     advance();
-    std::cout << "Compilação encerrada com sucesso!\n";
+    auto err = error.str();
+    if (err == "")
+    {
+        std::cout << "Compilação encerrada com sucesso!\n";
+    }
+    else
+    {
+        std::cout << "Compilação encerrada erros.\n";
+    }
 }
 
-bool
+inline bool
 Parser::nextIs(int type)
 {
     return lToken->type == type;
@@ -42,10 +50,7 @@ bool Parser::recTipos()
     if (nextIs(ID))
     {
         STEntry* e = globalST->find(lToken->lexeme);
-        if (e != nullptr && e->reserved == false)
-            return true;
-        else
-            return false;
+        return e != nullptr && e->reserved == false;
     }
     return false;
 }
@@ -84,9 +89,16 @@ void Parser::mainClass()
 void Parser::classDeclaration()
 {
     match(CLASS);
-    match(ID);
+    
+    /*if (globalST->find(lToken->lexeme) != nullptr)
+    {
+        stringstream erro;
+        erro << "Classe " << lToken->lexeme << " já declarada\n";
+        throw Error(erro.str());
+    }
+    globalST->add(STEntry(Token(ID, lToken->lexeme)));*/
 
-    globalST->add(STEntry(Token(ID, lToken->lexeme)));
+    match(ID);
 
     if (nextIs(EXTENDS))
     {
@@ -96,7 +108,6 @@ void Parser::classDeclaration()
     match(LCBRAC);
     while (!nextIs(RCBRAC))
     {
-        //while (!nextIs("}")) {
         if (nextIs(PUBLIC))
         {
             methodDeclaration();
@@ -141,6 +152,10 @@ void Parser::methodDeclaration()
     }
     while (!nextIs(RETURN))
     {
+        if (nextIs(RCBRAC))
+        {
+            break;
+        }
         statement();
     }
     match(RETURN);
@@ -209,6 +224,19 @@ void Parser::statement()
     }
     else
     {
+       /*
+        if (!nextIs(ID))
+        {
+            stringstream error;
+            error << "not allowed: " << lToken->type << ' ' << lToken->lexeme << '\n';
+            std::cout << error.str();
+            this->error << error.str();
+
+            panic();
+            return;
+        }
+       */
+
         match(ID);
         if (nextIs(LBRACE))
         {
@@ -216,13 +244,7 @@ void Parser::statement()
             expression();
             match(RBRACE);
         }
-        if (!nextIs("="))
-        {
-            stringstream erro;
-            erro << "Esperado = na linha " << scanner->getLine() << " obtido " << *lToken;
-            throw SyntaxError(erro.str());
-        }
-        match(OP);
+        match(ATTRIB);
         expression();
         match(SEMI);
     }

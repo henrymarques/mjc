@@ -4,6 +4,8 @@
 #include "scanner.h"
 #include "error.h"
 
+#include <algorithm>
+
 extern std::unordered_map<int, std::string> tokenTypeMap;
 
 class Parser
@@ -12,9 +14,17 @@ private:
     Scanner* scanner;
     Token* lToken;
     SymbolTable* globalST;
+    stringstream error;
+
     void advance();
     void match(int);
     bool recTipos();
+
+    std::vector<Types> tokens{
+        RCBRAC, // }
+        SEMI, // ;
+        END_OF_FILE
+    };
 
 public:
     Parser();
@@ -31,6 +41,7 @@ public:
     void statement();
     void expression();
     void expressionLinha();
+    void panic();
 };
 
 inline void
@@ -47,15 +58,24 @@ Parser::match(int type)
     if (lToken->type == type)
     {
         advance();
-        //return true;
     }
     else {
-        stringstream err;
-        err << "Esperado '" << tokenTypeMap[type] << "' na linha " << scanner->getLine() << " obtido " << *lToken;
-        throw SyntaxError(err.str());
-    }
+        stringstream error;
+        error << "Esperado '" << tokenTypeMap[type] << "' na linha " << scanner->getLine() << " obtido " << *lToken << '\n';
+        std::cout << error.str();
 
-    //return false;
+        this->error << error.str();
+        panic();
+    }
+}
+
+inline void Parser::panic()
+{
+    // type tá na lista
+    while (std::find(tokens.begin(), tokens.end(), lToken->type) == tokens.end())
+    {
+        advance();
+    }
 }
 
 /*

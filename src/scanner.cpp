@@ -14,8 +14,8 @@ std::unordered_map<string, Token> tokens{
     { "*", Token(MULT, "*")},
     { "/", Token(DIV, "/")},
     { "==", Token(EQ, "==")},
-    { "!=", Token(NEQ, "!=")},
-    { "=", Token(ATTRIB, "=")},*/
+    { "!=", Token(NEQ, "!=")},*/
+    { "=", Token(ATTRIB, "=")},
     { "(", Token(LPAREN, "(")},
     { ")", Token(RPAREN, ")")},
     { "[", Token(LBRACE, "[")},
@@ -130,7 +130,7 @@ Scanner::scan()
                 if (fin.eof())
                 {
                     stringstream erro;
-                    erro << "Final de bloco de comentário esperado na linha " << this->line;
+                    erro << "Final de bloco de comentÃ¡rio esperado na linha " << this->line;
                     throw LexicalError(erro.str());
                 }
 
@@ -193,9 +193,12 @@ Scanner::scan()
         {
             lexeme << peek;
             peek = fin.get();
+
+            token = Token(OP, lexeme.str());
+            return &token;
         }
 
-        token = Token(OP, lexeme.str());
+        token = Token(ATTRIB, lexeme.str());
         return &token;
     }
     else if (peek == '(' || peek == ')'
@@ -212,7 +215,7 @@ Scanner::scan()
     else
     {
         stringstream erro;
-        erro << "Símbolo '" << peek << "' não reconhecido " << " na linha " << this->line;
+        erro << "SÃ­mbolo '" << peek << "' nÃ£o reconhecido " << " na linha " << this->line;
         throw LexicalError(erro.str());
     }
 
