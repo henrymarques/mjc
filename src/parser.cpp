@@ -64,8 +64,19 @@ void Parser::mainClass()
 void Parser::classDeclaration()
 {
     match(CLASS);
-    
-    symTable->add(STEntry{ *lToken, STEntry::Types::USERDEF });
+
+    auto symbol = symTable->find(lToken->lexeme);
+    if (symbol != nullptr)
+    {
+        stringstream error;
+        error << "Redefinição de símbolo " << lToken->lexeme << " na linha " << scanner->getLine() << '\n';
+        this->error << error.str();
+        std::cout << error.str();
+    }
+    else
+    {
+        symTable->add(STEntry{*lToken, STEntry::Types::USERDEF});
+    }
 
     match(ID);
 
@@ -108,7 +119,7 @@ int Parser::type()
             match(RBRACE);
             varType = STEntry::Types::INTARRAY;
         }
-        else 
+        else
         {
             varType = STEntry::Types::INT;
         }
@@ -177,7 +188,7 @@ void Parser::methodDeclaration()
     SymbolTable* saved = symTable;
     symTable = new SymbolTable(symTable);
 
-    while ( recTipos() )
+    while (recTipos())
     {
         varDeclaration();
     }
@@ -202,7 +213,7 @@ void Parser::statement()
 {
     SymbolTable* saved = symTable;
     symTable = new SymbolTable(symTable);
-    
+
     if (nextIs(LCBRAC))
     {
         match(LCBRAC);
@@ -311,9 +322,9 @@ void Parser::expression()
 
 void Parser::expressionLinha()
 {
-    if (nextIs(OP) && lToken->lexeme != "=")
+    if (nextIs(ATTRIB))
     {
-        match(OP);
+        match(ATTRIB);
         expression();
     }
     else if (nextIs(LBRACE))

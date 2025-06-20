@@ -15,7 +15,6 @@ class Scanner
 private:
     string       input;
     char         peek;
-    int          pos = 0;
     int          line = 1;
 
     SymbolTable* st;
