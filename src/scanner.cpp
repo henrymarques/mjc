@@ -93,7 +93,7 @@ Scanner::scan()
         string str = lexeme.str();
         STEntry* obj = st->find(str);
 
-        token = !obj ? Token(ID, str) : Token(obj->token.type);
+        token = !obj ? Token(ID, str) : Token(obj->token.type, str);
         return &token;
     }
     else if (peek == '<' || peek == '>' || peek == '+' || peek == '-' || peek == '*')

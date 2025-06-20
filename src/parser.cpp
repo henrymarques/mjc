@@ -64,6 +64,8 @@ void Parser::mainClass()
 void Parser::classDeclaration()
 {
     match(CLASS);
+    
+    symTable->add(STEntry{ *lToken, STEntry::Types::USERDEF });
 
     match(ID);
 
@@ -106,8 +108,10 @@ int Parser::type()
             match(RBRACE);
             varType = STEntry::Types::INTARRAY;
         }
-
-        varType = STEntry::Types::INT;
+        else 
+        {
+            varType = STEntry::Types::INT;
+        }
     }
     else if (nextIs(BOOLEAN))
     {
