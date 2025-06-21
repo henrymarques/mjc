@@ -86,7 +86,7 @@ Scanner::scan()
             {
                 stringstream erro;
                 erro << "System.out.println esperado na linha " << this->line;
-                throw LexicalError(erro.str());
+                throw Error(erro.str());
             }
         }
 
@@ -131,7 +131,7 @@ Scanner::scan()
                 {
                     stringstream erro;
                     erro << "Final de bloco de comentário esperado na linha " << this->line;
-                    throw LexicalError(erro.str());
+                    throw Error(erro.str());
                 }
 
                 peek = fin.get();
@@ -181,7 +181,7 @@ Scanner::scan()
         {
             stringstream erro;
             erro << "& esperado na linha " << this->line;
-            throw LexicalError(erro.str());
+            throw Error(erro.str());
         }
     }
     else if (peek == '=')
@@ -216,7 +216,7 @@ Scanner::scan()
     {
         stringstream erro;
         erro << "Símbolo '" << peek << "' não reconhecido " << " na linha " << this->line;
-        throw LexicalError(erro.str());
+        throw Error(erro.str());
     }
 
     // simbolo invalido
