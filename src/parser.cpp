@@ -107,9 +107,9 @@ void Parser::classDeclaration()
     symTable = saved;
 }
 
-int Parser::type()
+STEntry::Types Parser::type()
 {
-    int varType;
+    STEntry::Types varType;
     if (nextIs(INT))
     {
         match(INT);
@@ -152,10 +152,17 @@ int Parser::type()
 
 void Parser::varDeclaration()
 {
-    int varType = type();
+    STEntry::Types varType = type();
 
-    STEntry symbol{*lToken, varType};
-    symTable->add(symbol);
+    auto symbol = symTable->findScope(lToken->lexeme);
+    if (symbol != nullptr)
+    {
+        stringstream error;
+        error << "Redefinição de símbolo " << lToken->lexeme << " na linha " << scanner->getLine() << '\n';
+        this->error << error.str();
+        std::cout << error.str();
+    }
+    symTable->add(STEntry{*lToken, varType});
 
     match(ID);
     match(SEMI);
@@ -163,8 +170,11 @@ void Parser::varDeclaration()
 
 void Parser::methodDeclaration()
 {
+    SymbolTable* saved = symTable;
+    symTable = new SymbolTable(symTable);
+
     match(PUBLIC);
-    int methodType = type();
+    STEntry::Types methodType = type();
 
     STEntry symbol{*lToken, methodType};
     symTable->add(symbol);
@@ -173,20 +183,38 @@ void Parser::methodDeclaration()
     match(LPAREN);
     if (nextIs(INT) || nextIs(BOOLEAN) || nextIs(ID))
     {
-        type();
+        STEntry::Types varType = type();
+
+        auto symbol = symTable->findScope(lToken->lexeme);
+        if (symbol != nullptr)
+        {
+            stringstream error;
+            error << "Redefinição de símbolo " << lToken->lexeme << " na linha " << scanner->getLine() << '\n';
+            this->error << error.str();
+            std::cout << error.str();
+        }
+        symTable->add(STEntry{*lToken, varType});
+
         match(ID);
         while (nextIs(COMMA))
         {
             match(COMMA);
-            type();
+            STEntry::Types varType = type();
+
+            auto symbol = symTable->findScope(lToken->lexeme);
+            if (symbol != nullptr)
+            {
+                stringstream error;
+                error << "Redefinição de símbolo " << lToken->lexeme << " na linha " << scanner->getLine() << '\n';
+                this->error << error.str();
+                std::cout << error.str();
+            }
+            symTable->add(STEntry{*lToken, varType});
             match(ID);
         }
     }
     match(RPAREN);
     match(LCBRAC);
-
-    SymbolTable* saved = symTable;
-    symTable = new SymbolTable(symTable);
 
     while (recTipos())
     {
@@ -201,9 +229,17 @@ void Parser::methodDeclaration()
         statement();
     }
     match(RETURN);
-    expression();
+    auto returnType = expression();
     match(SEMI);
     match(RCBRAC);
+
+    if (methodType != returnType)
+    {
+        stringstream error;
+        error << "Tipo de retorno não corresponde ao tipo da função " << symbol.token.lexeme << " na linha " << scanner->getLine() << '\n';
+        this->error << error.str();
+        std::cout << error.str();
+    }
 
     delete symTable;
     symTable = saved;
@@ -227,7 +263,14 @@ void Parser::statement()
     {
         match(IF);
         match(LPAREN);
-        expression();
+        auto t = expression();
+        if (t != STEntry::Types::BOOL)
+        {
+            stringstream error;
+            error << "Esperado BOOL recebido " << t << " na linha " << scanner->getLine() << '\n';
+            this->error << error.str();
+            std::cout << error.str();
+        }
         match(RPAREN);
         statement();
         match(ELSE);
@@ -237,7 +280,14 @@ void Parser::statement()
     {
         match(WHILE);
         match(LPAREN);
-        expression();
+        auto t = expression();
+        if (t != STEntry::Types::BOOL)
+        {
+            stringstream error;
+            error << "Esperado BOOL recebido " << t << " na linha " << scanner->getLine() << '\n';
+            this->error << error.str();
+            std::cout << error.str();
+        }
         match(RPAREN);
         statement();
     }
@@ -251,15 +301,44 @@ void Parser::statement()
     }
     else
     {
+        auto symbol = symTable->find(lToken->lexeme);
+        STEntry::Types ltype = STEntry::Types::NONE;
+
+        if (symbol == nullptr)
+        {
+            stringstream error;
+            error << "Símbolo não definido " << lToken->lexeme << " na linha " << scanner->getLine() << '\n';
+            this->error << error.str();
+            std::cout << error.str();
+        }
+        else
+        {
+            ltype = symbol->type;
+        }
+
         match(ID);
         if (nextIs(LBRACE))
         {
             match(LBRACE);
-            expression();
+            auto t = expression();
+            if (t != STEntry::Types::INT)
+            {
+                stringstream error;
+                error << "Esperado INT recebido " << t << " na linha " << scanner->getLine() << '\n';
+                this->error << error.str();
+                std::cout << error.str();
+            }
             match(RBRACE);
         }
         match(ATTRIB);
-        expression();
+        auto rtype = expression();
+        if (rtype != ltype)
+        {
+            stringstream error;
+            error << "Esperado " << ltype << " recebido " << rtype << " na linha " << scanner->getLine() << '\n';
+            this->error << error.str();
+            std::cout << error.str();
+        }
         match(SEMI);
     }
 
@@ -267,36 +346,64 @@ void Parser::statement()
     symTable = saved;
 }
 
-void Parser::expression()
+STEntry::Types Parser::expression()
 {
+    STEntry::Types expType = STEntry::Types::NONE;
+
     if (nextIs(INTEGER_LITERAL))
     {
+        expType = STEntry::Types::INT;
         match(INTEGER_LITERAL);
     }
     else if (nextIs(TRUE))
     {
+        expType = STEntry::Types::BOOL;
         match(TRUE);
     }
     else if (nextIs(FALSE))
     {
+        expType = STEntry::Types::BOOL;
         match(FALSE);
     }
     else if (nextIs(ID))
     {
+        auto symbol = symTable->find(lToken->lexeme);
+        if (symbol == nullptr)
+        {
+            expType = STEntry::Types::NONE;
+            stringstream error;
+            error << "Símbolo " << lToken->lexeme << " não definido na linha " << scanner->getLine() << '\n';
+            this->error << error.str();
+            std::cout << error.str();
+        }
+        else
+        {
+            expType = symbol->type;
+        }
+
         match(ID);
     }
     else if (nextIs(THIS))
     {
+        expType = STEntry::Types::USERDEF;
         match(THIS);
     }
     else if (nextIs(NEW))
     {
+        expType = STEntry::Types::POINTER;
         match(NEW);
         if (nextIs(INT))
         {
             match(INT);
             match(LBRACE);
-            expression();
+            auto t = expression();
+            if (t != STEntry::Types::INT)
+            {
+                stringstream error;
+                error << "Esperado INT recebido " << t << " na linha " << scanner->getLine() << '\n';
+                this->error << error.str();
+                std::cout << error.str();
+            }
             match(RBRACE);
         }
         else
@@ -306,10 +413,17 @@ void Parser::expression()
             match(RPAREN);
         }
     }
-    else if (nextIs(OP) && lToken->lexeme != "!")
+    else if (nextIs(OP) && lToken->lexeme == "!")
     {
         match(OP);
-        expression();
+        auto t = expression();
+        if (t != STEntry::Types::BOOL)
+        {
+            stringstream error;
+            error << "Esperado BOOLEAN recebido " << t << " na linha " << scanner->getLine() << '\n';
+            this->error << error.str();
+            std::cout << error.str();
+        }
     }
     else if (nextIs(LPAREN))
     {
@@ -317,22 +431,54 @@ void Parser::expression()
         expression();
         match(RPAREN);
     }
-    expressionLinha();
+    expressionLinha(expType);
+
+    return expType;
 }
 
-void Parser::expressionLinha()
+void Parser::expressionLinha(STEntry::Types expType)
 {
-    if (nextIs(ATTRIB))
+    if (nextIs(OP))
     {
-        match(ATTRIB);
-        expression();
+        string op = lToken->lexeme;
+
+        match(OP);
+
+        auto t = expression();
+        if (op == "+" || op == "-" || op == "*" || op == "/" || op == "<" || op == ">" || op == "==" || op == "!=")
+        {
+            if (expType != t || t != STEntry::Types::INT)
+            {
+                stringstream error;
+                error << "Expressões precisam ter tipo INT. Recebido " << t << " e " << expType << " na linha " << scanner->getLine() << '\n';
+                this->error << error.str();
+                std::cout << error.str();
+            }
+        }
+        else if (op == "&&")
+        {
+            if (expType != t || t != STEntry::Types::BOOL)
+            {
+                stringstream error;
+                error << "Expressões precisam ter tipo BOOL. Recebido " << t << " e " << expType << " na linha " << scanner->getLine() << '\n';
+                this->error << error.str();
+                std::cout << error.str();
+            }
+        }
+        else
+        {
+            stringstream error;
+            error << "Operador não reconhecido " << lToken->lexeme << " na linha " << scanner->getLine() << '\n';
+            this->error << error.str();
+            std::cout << error.str();
+        }
     }
     else if (nextIs(LBRACE))
     {
         match(LBRACE);
         expression();
         match(RBRACE);
-        expressionLinha();
+        expressionLinha(STEntry::Types::NONE);
     }
     else if (nextIs(DOT))
     {
@@ -359,6 +505,6 @@ void Parser::expressionLinha()
                 match(RPAREN);
             }
         }
-        expressionLinha();
+        expressionLinha(STEntry::Types::NONE);
     }
 }

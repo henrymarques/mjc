@@ -22,3 +22,14 @@ SymbolTable::find(string lexeme)
     }
     return nullptr;
 }
+
+
+STEntry*
+SymbolTable::findScope(string lexeme)
+{
+    SymbolTable* st = this;
+    auto found = st->symbols.find(lexeme);
+    if (found != st->symbols.end())
+        return &found->second;
+    return nullptr;
+}

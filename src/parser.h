@@ -35,10 +35,10 @@ public:
     void classDeclaration();
     void varDeclaration();
     void methodDeclaration();
-    int type();
+    STEntry::Types type();
     void statement();
-    void expression();
-    void expressionLinha();
+    STEntry::Types expression();
+    void expressionLinha(STEntry::Types);
     void panic();
 
     bool nextIs(int type)
@@ -65,7 +65,8 @@ Parser::recTipos()
 inline void
 Parser::advance()
 {
-    do {
+    do
+    {
         lToken = scanner->scan();
     } while (lToken->type == COMMENT);
 }
@@ -77,7 +78,8 @@ Parser::match(int type)
     {
         advance();
     }
-    else {
+    else
+    {
         stringstream error;
         error << "Esperado '" << tokenTypeMap[type] << "' na linha " << scanner->getLine() << " obtido " << *lToken << '\n';
         std::cout << error.str();

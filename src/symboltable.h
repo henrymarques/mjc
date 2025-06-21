@@ -47,6 +47,7 @@ public:
 
     bool add(STEntry);
     STEntry* find(string);
+    STEntry* findScope(string);
 };
 
 #endif
