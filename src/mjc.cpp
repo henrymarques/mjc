@@ -6,35 +6,12 @@
 using std::cout;
 std::ifstream fin;
 
-void fullTest()
-{
-    for (auto const& dir_entry : std::filesystem::directory_iterator{ "tests" })
-    {
-        if (dir_entry.is_directory()) continue;
-        fin.open(dir_entry.path());
-
-        try
-        {
-            Parser parser;
-            parser.run();
-        }
-        catch (Error err)
-        {
-            err.what();
-        }
-
-        fin.close();
-        break;
-    }
-    exit(0);
-}
-
 int
 main(int argc, char *argv[])
 {
+#ifdef _MSC_VER
     std::locale::global(std::locale(".utf8"));
-
-    fullTest();
+#endif
 
     // Verifica se foi executado corretamente
     // Essa main espera receber o nome do arquivo a ser

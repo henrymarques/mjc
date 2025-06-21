@@ -26,7 +26,7 @@ void Parser::run()
     }
     else
     {
-        std::cout << "Compilação encerrada erros.\n";
+        std::cout << "Compilação encerrada com erros.\n";
     }
 }
 
@@ -230,9 +230,6 @@ void Parser::methodDeclaration()
     }
     match(RETURN);
     auto returnType = expression();
-    match(SEMI);
-    match(RCBRAC);
-
     if (methodType != returnType)
     {
         stringstream error;
@@ -240,6 +237,8 @@ void Parser::methodDeclaration()
         this->error << error.str();
         std::cout << error.str();
     }
+    match(SEMI);
+    match(RCBRAC);
 
     delete symTable;
     symTable = saved;
@@ -263,14 +262,7 @@ void Parser::statement()
     {
         match(IF);
         match(LPAREN);
-        auto t = expression();
-        if (t != STEntry::Types::BOOL)
-        {
-            stringstream error;
-            error << "Esperado BOOL recebido " << t << " na linha " << scanner->getLine() << '\n';
-            this->error << error.str();
-            std::cout << error.str();
-        }
+        expression();
         match(RPAREN);
         statement();
         match(ELSE);
@@ -280,14 +272,7 @@ void Parser::statement()
     {
         match(WHILE);
         match(LPAREN);
-        auto t = expression();
-        if (t != STEntry::Types::BOOL)
-        {
-            stringstream error;
-            error << "Esperado BOOL recebido " << t << " na linha " << scanner->getLine() << '\n';
-            this->error << error.str();
-            std::cout << error.str();
-        }
+        expression();
         match(RPAREN);
         statement();
     }
@@ -445,12 +430,22 @@ void Parser::expressionLinha(STEntry::Types expType)
         match(OP);
 
         auto t = expression();
-        if (op == "+" || op == "-" || op == "*" || op == "/" || op == "<" || op == ">" || op == "==" || op == "!=")
+        if (op == "+" || op == "-" || op == "*" || op == "/" || op == "<" || op == ">")
         {
             if (expType != t || t != STEntry::Types::INT)
             {
                 stringstream error;
                 error << "Expressões precisam ter tipo INT. Recebido " << t << " e " << expType << " na linha " << scanner->getLine() << '\n';
+                this->error << error.str();
+                std::cout << error.str();
+            }
+        }
+        else if (op == "==" || op == "!=")
+        {
+            if (expType != t || t == STEntry::Types::NONE)
+            {
+                stringstream error;
+                error << "Expressões precisam ser do mesmo tipo. Recebido " << t << " e " << expType << " na linha " << scanner->getLine() << '\n';
                 this->error << error.str();
                 std::cout << error.str();
             }
